@@ -14,6 +14,7 @@ const employeeRoutes = require('./routes/employees');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Middleware
 app.use(cors());
 app.use(express.json());
 
@@ -40,7 +41,7 @@ app.get('/api/dashboard', async (req, res) => {
     );
 
     const [[activeLoans]] = await db.query(
-      "SELECT COUNT(*) AS total FROM loans WHERE status='approved'"
+      "SELECT COUNT(*) AS total FROM loans WHERE status = 'approved'"
     );
 
     const [[employeeCount]] = await db.query(
@@ -55,20 +56,29 @@ app.get('/api/dashboard', async (req, res) => {
       total_employees: employeeCount.total
     });
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: err.message });
+    console.error('Dashboard error:', err);
+    res.status(500).json({
+      error: err.message
+    });
   }
 });
 
-// Serve React frontend
+// Serve React Vite frontend
 app.use(
-  express.static(path.join(__dirname, 'bank-frontend', 'dist'))
+  express.static(
+    path.join(__dirname, 'bank-frontend', 'dist')
+  )
 );
 
 // React fallback
 app.get(/.*/, (req, res) => {
   res.sendFile(
-    path.join(__dirname, 'bank-frontend', 'dist', 'index.html')
+    path.join(
+      __dirname,
+      'bank-frontend',
+      'dist',
+      'index.html'
+    )
   );
 });
 
