@@ -1,5 +1,6 @@
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
 require('dotenv').config();
 
 const db = require('./config/db');
@@ -16,21 +17,35 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// Routes
+// API Routes
 app.use('/api/customers', customerRoutes);
 app.use('/api/accounts', accountRoutes);
 app.use('/api/transactions', transactionRoutes);
 app.use('/api/loans', loanRoutes);
 app.use('/api/employees', employeeRoutes);
 
-// Dashboard
+// Dashboard API
 app.get('/api/dashboard', async (req, res) => {
   try {
-    const [[customerCount]] = await db.query('SELECT COUNT(*) AS total FROM customers');
-    const [[accountCount]] = await db.query('SELECT COUNT(*) AS total FROM accounts');
-    const [[totalBalance]] = await db.query('SELECT SUM(balance) AS total FROM accounts');
-    const [[activeLoans]] = await db.query("SELECT COUNT(*) AS total FROM loans WHERE status='approved'");
-    const [[employeeCount]] = await db.query('SELECT COUNT(*) AS total FROM employees');
+    const [[customerCount]] = await db.query(
+      'SELECT COUNT(*) AS total FROM customers'
+    );
+
+    const [[accountCount]] = await db.query(
+      'SELECT COUNT(*) AS total FROM accounts'
+    );
+
+    const [[totalBalance]] = await db.query(
+      'SELECT SUM(balance) AS total FROM accounts'
+    );
+
+    const [[activeLoans]] = await db.query(
+      "SELECT COUNT(*) AS total FROM loans WHERE status='approved'"
+    );
+
+    const [[employeeCount]] = await db.query(
+      'SELECT COUNT(*) AS total FROM employees'
+    );
 
     res.json({
       total_customers: customerCount.total,
@@ -40,14 +55,24 @@ app.get('/api/dashboard', async (req, res) => {
       total_employees: employeeCount.total
     });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: err.message });
   }
 });
 
-app.get('/', (req, res) => {
-  res.send('Bank Management System API is running');
+// Serve React frontend
+app.use(
+  express.static(path.join(__dirname, 'bank-frontend', 'dist'))
+);
+
+// React fallback
+app.get(/.*/, (req, res) => {
+  res.sendFile(
+    path.join(__dirname, 'bank-frontend', 'dist', 'index.html')
+  );
 });
 
+// Start server
 app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
+  console.log(`Server running on port ${PORT}`);
 });
