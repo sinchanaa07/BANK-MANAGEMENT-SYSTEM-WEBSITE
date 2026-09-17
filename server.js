@@ -57,16 +57,17 @@ app.get('/api/dashboard', async (req, res) => {
     });
   } catch (err) {
     console.error('Dashboard error:', err);
+
     res.status(500).json({
       error: err.message
     });
   }
 });
 
-// Serve React Vite frontend
+// Serve React frontend
 app.use(
   express.static(
-    path.join(__dirname, 'bank-frontend', 'dist')
+    path.join(__dirname, 'bank-frontend', 'build')
   )
 );
 
@@ -76,7 +77,7 @@ app.get(/.*/, (req, res) => {
     path.join(
       __dirname,
       'bank-frontend',
-      'dist',
+      'build',
       'index.html'
     )
   );
